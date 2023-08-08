@@ -1,11 +1,17 @@
-org 0x7C00            ; BIOS loads boot sector to 0x7C00
+org 0x0               ; BIOS loads boot sector to 0x7C00
 bits 16               ; 16-bit code
 
 ; define end of line macro
 %define ENDL 0x0D 0x0A
 
 start:
-  jmp main
+  ; print hello world
+  mov si, msg_hello   ; si = msg_hello
+  call puts           ; call puts(msg_hello)
+
+.halt:
+  cli                 ; disable interrupts
+  hlt                 ; halt the CPU (infinite loop)
 
 ; Print a string to the screen
 ; Inputs:
@@ -36,29 +42,4 @@ puts:
   pop si              ; restore si
   ret
 
-; main program
-main:
-  ; setup data segments
-  mov ax, 0
-  mov ds, ax
-  mov es, ax
-
-  ; setup stack
-  mov ss, ax
-  mov sp, 0x7C00
-
-  ; print message
-  mov si, msg_hello   ; si = msg_hello
-  call puts           ; call puts(msg_hello)
-
-  hlt                 ; halt the CPU (infinite loop)
-
-; infinite loop
-.halt:
-  jmp .halt
-
-msg_hello:
-  db "Hello, World!", ENDL, 0
-
-times 510-($-$$) db 0 ; pad with zeros until 510 bytes
-dw 0AA55h             ; boot signature
+msg_hello: db "Hello, World from kernel! \)", ENDL, 0
