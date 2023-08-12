@@ -42,4 +42,4 @@ puts:
   pop si              ; restore si
   ret
 
-msg_hello: db "Hello, World from kernel! \)", ENDL, 0
+msg_hello: db "Hello, World from kernel! ihdkuh", ENDL, 0
