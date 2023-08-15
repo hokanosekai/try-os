@@ -1,152 +1,382 @@
-bits 16
+extern LoadGDT
 
-section _TEXT class=CODE
+%macro x86_EnterRealMode 0
+  [bits 32]
+  jmp word 18h:.pmode16
+
+.pmode16:
+  [bits 16]
+  ; disable protected mode bit in cr0
+  mov eax, cr0           ; eax = cr0
+  and al, ~1             ; al = cr0 & ~1 (clear bit 0)
+  mov cr0, eax           ; cr0 = eax
+
+  ; load real mode data segment registers
+  jmp word 00h:.rmode
+
+.rmode:
+  ; setup segment registers
+  mov ax, 0
+  mov ds, ax
+  mov ss, ax
+
+  ; enable interrupts
+  sti
+
+%endmacro
+
+%macro x86_EnterProtectedMode 0
+  cli
+  call LoadGDT
+
+  ; enable protected mode bit in cr0
+  mov eax, cr0           ; eax = cr0
+  or al, 1               ; al = cr0 | 1 (set bit 0)
+  mov cr0, eax           ; cr0 = eax
+
+  ; far jump into protected mode
+  jmp dword 08h:.pmode
+
+.pmode:
+  ; we are now in protected mode
+  [bits 32]
+
+  ; setup segment registers
+  mov ax, 10h
+  mov ds, ax
+  mov ss, ax
+
+%endmacro
 
 ;
-; void _cdecl x86_div64_32(uint64_t dividend, uint32_t divisor, uint64_t* quotient, uint32_t* remainder);
+; Convert linear address to segment:offset address
+; Args:
+;    1 - linear address
+;    2 - (out) target segment (e.g. es)
+;    3 - target 32-bit register to use (e.g. eax)
+;    4 - target lower 16-bit half of #3 (e.g. ax)
 ;
-; Inputs:
-;   ax = dividend
-;   dx = divisor
-; Outputs:
-;   ax = quotient
-;   dx = remainder
-global _x86_div64_32
-_x86_div64_32:
+%macro LinearToSegOffset 4
+
+    mov %3, %1      ; linear address to eax
+    shr %3, 4
+    mov %2, %4
+    mov %3, %1      ; linear address to eax
+    and %3, 0xf
+
+%endmacro
+
+global x86_outb
+x86_outb:
+  [bits 32]
+  mov dx, [esp + 4]    ; dx = port
+  mov al, [esp + 8]    ; al = value
+  out dx, al           ; outb dx, al
+  ret
+
+global x86_inb
+x86_inb:
+  [bits 32]
+  mov dx, [esp + 4]    ; dx = port
+  xor eax, eax         ; eax = 0
+  in al, dx            ; inb dx, al
+  ret
+
+global x86_Disk_GetDriveParams
+x86_Disk_GetDriveParams:
+  [bits 32]
+
   ; make new call frame
-  push bp               ; save old call frame
-  mov bp, sp            ; initialize new call frame
+  push ebp              ; save old call frame
+  mov ebp, esp          ; initialize new call frame
 
-  push bx               ; save bx
+  x86_EnterRealMode
 
-  ; divide upper 32 bits
-  mov eax, [bp + 8]     ; eax = dividend
-  mov ecx, [bp + 12]    ; ecx = divisor
-  xor edx, edx          ; edx = 0
-  div ecx               ; eax = eax / ecx, edx = eax % ecx
+  [bits 16]
 
-  ; save quotient
-  mov bx, [bp + 16]     ; bx = quotient
-  mov [bx + 4], eax     ; [bx + 4] = eax
+  ; save registers
+  push es
+  push bx
+  push esi
+  push di
 
-  ; divide lower 32 bits
-  mov eax, [bp + 4]     ; eax = dividend
-                        ; edx = old remainder
-  div ecx               ; eax = eax / ecx, edx = eax % ecx
+  mov dl, [bp + 8]      ; dl = drive number
+  mov ax, 0800h         ; int 13h, ah=08h
+  mov di, 0             ; di = 0
+  mov es, di            ; es = 0
+  stc                   ; set carry flag
+  int 13h               ; call BIOS disk interrupt
 
-  ; save remainder
-  mov [bx], eax         ; [bx] = eax
-  mov bx, [bp + 18]     ; bx = quotient
-  mov [bx], edx         ; [bx] = edx
+  ; output parameters
+  mov eax, 1            ; eax = 1
+  sbb eax, 0            ; eax = 0 if carry flag is set
 
-  pop bx                ; restore bx
+  LinearToSegOffset [bp + 12], es, esi, si
+  mov [es:si], bl
+
+  ; cylindar count
+  mov bl, ch            ; bl = ch (lower 8 bits of cylindar count)
+  mov bh, cl            ; bh = cl (upper 2 bits of cylindar count)
+  shr bh, 6             ; bh = bh >> 6 (upper 2 bits of cylindar count)
+  inc bx                ; bx = bx + 1 (cylindar count)
+
+  LinearToSegOffset [bp + 16], es, esi, si
+  mov [es:si], bx
+
+  ; sector count
+  xor ch, ch            ; ch = 0 (lower 5 bits in cl)
+  and cl, 3fh           ; cl = cl & 3fh (lower 6 bits in cl)
+
+  LinearToSegOffset [bp + 20], es, esi, si
+  mov [es:si], cx
+
+  ; head count
+  mov cl, dh            ; cl = dh (lower 8 bits of head count)
+  inc cx                ; cx = cx + 1 (head count)
+
+  LinearToSegOffset [bp + 24], es, esi, si
+  mov [es:si], cx
+
+  ; restore registers
+  pop di
+  pop esi
+  pop bx
+  pop es
+
+  push eax              ; save eax
+
+  x86_EnterProtectedMode
+
+  [bits 32]
+
+  pop eax               ; restore eax
 
   ; restore old call frame
-  mov sp, bp            ; restore stack pointer
-  pop bp                ; restore base pointer
+  mov esp, ebp          ; restore stack pointer
+  pop ebp               ; restore base pointer
   ret                   ; return to caller
 
-;
-; void _cdecl x86_Video_ClearScreen(void);
-;
-; int 10h, ah=06h
-; Inputs:
-;   none
-; Outputs:
-;   none
-global _x86_Video_ClearScreen
-_x86_Video_ClearScreen:
+global x86_Disk_Reset
+x86_Disk_Reset:
+  [bits 32]
+
   ; make new call frame
-  push bp               ; save old call frame
-  mov bp, sp            ; initialize new call frame
+  push ebp              ; save old call frame
+  mov ebp, esp          ; initialize new call frame
 
-  ; save bx
-  push bx
+  x86_EnterRealMode
 
-  ; clear screen
-  mov ah, 06h           ; int 10h, ah=06h
-  mov al, 0             ; al = blank character
-  mov bh, 07h           ; bh = attribute
-  mov cx, 0             ; cx = upper left corner
-  mov dx, 184fh         ; dx = lower right corner
-  int 10h               ; call BIOS video interrupt
+  mov ah, 0             ; int 13h, ah=0
+  mov dl, [bp + 8]      ; dl = drive number
+  stc                   ; set carry flag
+  int 13h               ; call BIOS disk interrupt
 
-  ; restore bx
-  pop bx
+  mov eax, 1            ; eax = 1
+  sbb eax, 0            ; eax = 0 if carry flag is set
+
+  push eax              ; save eax
+
+  x86_EnterProtectedMode
+
+  pop eax               ; restore eax
 
   ; restore old call frame
-  mov sp, bp            ; restore stack pointer
-  pop bp                ; restore base pointer
+  mov esp, ebp          ; restore stack pointer
+  pop ebp               ; restore base pointer
   ret                   ; return to caller
 
-;
-; void _cdecl x86_Video_WriteCharTeletype(char c, uint8_t page);
-;
-; int 10h, ah=0eh
-; Inputs:
-;   al = character to write
-;   bh = page number
-; Outputs:
-;   none
-global _x86_Video_WriteCharTeletype
-_x86_Video_WriteCharTeletype:
+global x86_Disk_Read
+x86_Disk_Read:
   ; make new call frame
-  push bp               ; save old call frame
-  mov bp, sp            ; initialize new call frame
+  push ebp              ; save old call frame
+  mov ebp, esp          ; initialize new call frame
 
-  ; save bx
-  push bx
+  x86_EnterRealMode
 
-  ; [bp + 0] = old call frame
-  ; [bp + 2] = return address (small memory model => 2 bytes)
-  ; [bp + 4] = al
-  ; [bp + 6] = bh
-  mov ah, 0eh           ; int 10h, ah=0eh
-  mov al, [bp + 4]      ; al = character to write
-  mov bh, [bp + 6]      ; bh = page number
+  ; save registers
+  push ebx              ; save ebx
+  push es               ; save es
 
-  int 10h               ; call BIOS video interrupt
+  ; setup args
+  mov dl, [bp + 8]      ; dl = drive number
+  mov ch, [bp + 12]     ; ch = cylinder (lower 8 bits)
+  mov cl, [bp + 13]     ; cl = cylinder (2 bits 6-7)
+  shl cl, 6             ; cl = cl << 6
 
-  ; restore bx
-  pop bx
+  mov al, [bp + 16]     ; al = sector count 
+  and al, 3fh           ; al = al & 3fh (bits 0-5)
+  or cl, al             ; cl = cl | al (bits 0-5)
+
+  mov dh, [bp + 20]     ; dh = head
+  mov al, [bp + 24]     ; al = sector
+
+  LinearToSegOffset [bp + 28], es, ebx, bx
+
+  ; call BIOS disk interrupt
+  mov ah, 02h           ; int 13h, ah=02h (0x02 = read sectors)
+  stc                   ; set carry flag
+  int 13h               ; call BIOS disk interrupt
+
+  ; restore registers
+  pop es                ; restore es
+  pop ebx               ; restore ebx
+
+  push eax              ; save eax
+
+  x86_EnterProtectedMode
+
+  pop eax               ; restore eax
 
   ; restore old call frame
-  mov sp, bp            ; restore stack pointer
-  pop bp                ; restore base pointer
+  mov esp, ebp          ; restore stack pointer
+  pop ebp               ; restore base pointer
   ret                   ; return to caller
 
-;
-; char _cdecl x86_Video_ReadCharTeletype(uint8_t page);
-;
-; Inputs:
-;   bh = page number
-; Outputs:
-;   al = character read
-;   ah = scan code
-global _x86_Video_ReadCharTeletype
-_x86_Video_ReadCharTeletype:
+global x86_Video_GetVbeInfo
+x86_Video_GetVbeInfo:
   ; make new call frame
-  push bp               ; save old call frame
-  mov bp, sp            ; initialize new call frame
+  push ebp              ; save old call frame
+  mov ebp, esp          ; initialize new call frame
 
-  ; save bx
-  push bx
+  x86_EnterRealMode
 
-  ; [bp + 0] = old call frame
-  ; [bp + 2] = return address (small memory model => 2 bytes)
-  ; [bp + 4] = bh
-  mov ax, 0             ; int 16h, ah=0
-  int 16h               ; call BIOS keyboard interrupt
+  ; save registers
+  push edi              ; save edi
+  push es               ; save es
+  push ebp              ; save ebp (Note: bochs vbe change ebp)
 
-  mov ah, 0x0e          ; int 10h, ah=0eh
-  mov bh, [bp + 4]      ; bh = page number
-
+  ; call BIOS video interrupt
+  mov ax, 4f00h         ; int 10h, ax=4f00h (0x4f00 = get vbe info)
+  LinearToSegOffset [bp + 8], es, edi, di
   int 10h               ; call BIOS video interrupt
 
-  ; restore bx
-  pop bx
+  ; check return
+  cmp al, 4fh           ; al == 0x4f?
+  jne .error            ; no, error
+
+  ; put status in eax
+  mov al, ah            ; al = ah (status)
+  and eax, 0ffh         ; eax = eax & 0xff (status)
+  jmp .cont             ; continue
+
+.error:
+  mov eax, -1           ; eax = -1 (error)
+
+.cont:
+  ; restore registers
+  pop ebp               ; restore ebp
+  pop es                ; restore es
+  pop ebx               ; restore ebx
+
+  push eax              ; save eax
+
+  x86_EnterProtectedMode
+
+  pop eax               ; restore eax
 
   ; restore old call frame
-  mov sp, bp            ; restore stack pointer
-  pop bp                ; restore base pointer
+  mov esp, ebp          ; restore stack pointer
+  pop ebp               ; restore base pointer
+  ret                   ; return to caller
+
+global x86_Video_GetModeInfo
+x86_Video_GetModeInfo:
+  ; make new call frame
+  push ebp              ; save old call frame
+  mov ebp, esp          ; initialize new call frame
+
+  x86_EnterRealMode
+
+  ; save registers
+  push edi              ; save edi
+  push es               ; save es
+  push ebp              ; save ebp (Note: bochs vbe change ebp)
+  push ecx              ; save ecx
+
+  ; call BIOS video interrupt
+  mov ax, 4f01h         ; int 10h, ax=4f01h (0x4f01 = get mode info)
+  mov cx, [bp + 8]      ; cx = mode number
+  LinearToSegOffset [bp + 12], es, edi, di
+  int 10h               ; call BIOS video interrupt
+
+  ; check return
+  cmp al, 4fh           ; al == 0x4f?
+  jne .error            ; no, error
+
+  ; put status in eax
+  mov al, ah            ; al = ah (status)
+  and eax, 0ffh         ; eax = eax & 0xff (status)
+  jmp .cont             ; continue
+
+.error:
+  mov eax, -1           ; eax = -1 (error)
+
+.cont:
+  ; restore registers
+  pop ecx               ; restore ecx
+  pop ebp               ; restore ebp
+  pop es                ; restore es
+  pop ebx               ; restore ebx
+
+  push eax              ; save eax
+
+  x86_EnterProtectedMode
+
+  pop eax               ; restore eax
+
+  ; restore old call frame
+  mov esp, ebp          ; restore stack pointer
+  pop ebp               ; restore base pointer
+  ret                   ; return to caller
+
+global x86_Video_SetMode
+x86_Video_SetMode:
+  ; make new call frame
+  push ebp              ; save old call frame
+  mov ebp, esp          ; initialize new call frame
+
+  x86_EnterRealMode
+
+  ; save registers
+  push edi              ; save edi
+  push es               ; save es
+  push ebp              ; save ebp (Note: bochs vbe change ebp)
+  push ebx              ; save ebx
+
+  ; call BIOS video interrupt
+  mov ax, 0             ; int 10h, ax=0 (0x00 = set mode)
+  mov es, ax            ; es = ax (es = 0)
+  mov edi, 0            ; edi = 0
+  mov ax, 4f02h         ; int 10h, ax=4f02h (0x4f02 = set mode)
+  mov bx, [bp + 8]      ; bx = mode number
+  int 10h               ; call BIOS video interrupt
+
+  ; check return
+  cmp al, 4fh           ; al == 0x4f?
+  jne .error            ; no, error
+
+  ; put status in eax
+  mov al, ah            ; al = ah (status)
+  and eax, 0ffh         ; eax = eax & 0xff (status)
+  jmp .cont             ; continue
+
+.error:
+  mov eax, -1           ; eax = -1 (error)
+
+.cont:
+  ; restore registers
+  pop ebx               ; restore ebx
+  pop ebp               ; restore ebp
+  pop es                ; restore es
+  pop ebx               ; restore ebx
+
+  push eax              ; save eax
+
+  x86_EnterProtectedMode
+
+  pop eax               ; restore eax
+
+  ; restore old call frame
+  mov esp, ebp          ; restore stack pointer
+  pop ebp               ; restore base pointer
   ret                   ; return to caller

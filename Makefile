@@ -1,50 +1,48 @@
-ASM = nasm
-CC = gcc
-CC16 = wcc
-LD16 = wlink
-MAKE = make
-
-SRC_DIR = src
-BIN_DIR = bin
+include config/config.mk
 
 .PHONY: all floppy kernel bootloader clean always
 
-# Floppy
-floppy: $(BIN_DIR)/floppy.img
+all: floppy
 
-$(BIN_DIR)/floppy.img: bootloader kernel
-	dd if=/dev/zero of=$(BIN_DIR)/floppy.img bs=512 count=2880
-	mkfs.fat -F 12 -n "TRYOS" $(BIN_DIR)/floppy.img
-	dd if=$(BIN_DIR)/stage1.bin of=$(BIN_DIR)/floppy.img conv=notrunc
-	mcopy -i $(BIN_DIR)/floppy.img $(BIN_DIR)/stage2.bin "::stage2.bin"
-	mcopy -i $(BIN_DIR)/floppy.img $(BIN_DIR)/kernel.bin "::kernel.bin"
+include config/toolchain.mk
+
+# Floppy
+floppy: $(BUILD_DIR)/floppy.img
+
+$(BUILD_DIR)/floppy.img: bootloader kernel
+	dd if=/dev/zero of=$(BUILD_DIR)/floppy.img bs=512 count=2880 > /dev/null
+	mkfs.fat -F 12 -n "TRYOS" $(BUILD_DIR)/floppy.img > /dev/null
+	dd if=$(BUILD_DIR)/stage1.bin of=$(BUILD_DIR)/floppy.img conv=notrunc > /dev/null
+	mcopy -i $(BUILD_DIR)/floppy.img $(BUILD_DIR)/stage2.bin "::stage2.bin"
+	mcopy -i $(BUILD_DIR)/floppy.img $(BUILD_DIR)/kernel.bin "::kernel.bin"
+	echo "Floppy: Done"
 
 # Bootloader
 bootloader: stage1 stage2
 
-stage1: $(BIN_DIR)/stage1.bin
+stage1: $(BUILD_DIR)/stage1.bin
 
-$(BIN_DIR)/stage1.bin: always
-	$(MAKE) -C $(SRC_DIR)/bootloader/stage1 BIN_DIR=$(abspath $(BIN_DIR))
+$(BUILD_DIR)/stage1.bin: always
+	$(MAKE) -C src/bootloader/stage1 BUILD_DIR=$(abspath $(BUILD_DIR))
 
-stage2: $(BIN_DIR)/stage2.bin
+stage2: $(BUILD_DIR)/stage2.bin
 
-$(BIN_DIR)/stage2.bin: always
-	$(MAKE) -C $(SRC_DIR)/bootloader/stage2 BIN_DIR=$(abspath $(BIN_DIR))
+$(BUILD_DIR)/stage2.bin: always
+	$(MAKE) -C src/bootloader/stage2 BUILD_DIR=$(abspath $(BUILD_DIR))
 
 # Kernel
-kernel: $(BIN_DIR)/kernel.bin
+kernel: $(BUILD_DIR)/kernel.bin
 
-$(BIN_DIR)/kernel.bin: always
-	$(MAKE) -C $(SRC_DIR)/kernel BIN_DIR=$(abspath $(BIN_DIR))
+$(BUILD_DIR)/kernel.bin: always
+	$(MAKE) -C src/kernel BUILD_DIR=$(abspath $(BUILD_DIR))
 
 # Always
 always:
-	mkdir -p $(BIN_DIR)
+	mkdir -p $(BUILD_DIR)
 
 # Clean
 clean:
-	$(MAKE) -C $(SRC_DIR)/bootloader/stage1 clean BIN_DIR=$(abspath $(BIN_DIR))
-	$(MAKE) -C $(SRC_DIR)/bootloader/stage2 clean BIN_DIR=$(abspath $(BIN_DIR))
-	$(MAKE) -C $(SRC_DIR)/kernel clean BIN_DIR=$(abspath $(BIN_DIR))
-	rm -rf $(BIN_DIR)
+	$(MAKE) -C src/bootloader/stage1 clean BUILD_DIR=$(abspath $(BUILD_DIR))
+	$(MAKE) -C src/bootloader/stage2 clean BUILD_DIR=$(abspath $(BUILD_DIR))
+	$(MAKE) -C src/kernel clean BUILD_DIR=$(abspath $(BUILD_DIR))
+	rm -rf $(BUILD_DIR)

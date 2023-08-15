@@ -1,21 +1,25 @@
-#include "stdint.h"
+#pragma once
 
-/**
- * @brief Divides a 64-bit unsigned integer by a 32-bit unsigned integer.
- */
-void _cdecl x86_div64_32(uint64_t dividend, uint32_t divisor, uint64_t* quotient, uint32_t* remainder);
+#include <stdint.h>
+#include <stdbool.h>
 
-/**
- * @brief Clear the screen.
- */
-void _cdecl x86_Video_ClearScreen(void);
+void __attribute__((cdecl)) x86_outb(uint16_t port, uint8_t value);
+uint8_t __attribute__((cdecl)) x86_inb(uint16_t port);
 
-/**
- * @brief Writes a character to the teletype.
- */
-void _cdecl x86_Video_WriteCharTeletype(char c, uint8_t page);
+bool __attribute__((cdecl)) x86_Disk_GetDriveParams(uint8_t drive,
+                                                    uint8_t *driveType,
+                                                    uint16_t *cylinders,
+                                                    uint16_t *sectors,
+                                                    uint16_t *heads);
 
-/**
- * @brief Reads a character from the teletype.
- */
-char _cdecl x86_Video_ReadCharTeletype(uint8_t page);
+bool __attribute__((cdecl)) x86_Disk_Reset(uint8_t drive);
+bool __attribute__((cdecl)) x86_Disk_Read(uint8_t drive,
+                                          uint16_t cylinder,
+                                          uint16_t sector,
+                                          uint16_t head,
+                                          uint8_t count,
+                                          void* lowerDataOut);
+
+int __attribute__((cdecl)) x86_Video_GetVbeInfo(void* vbeInfoOut);
+int __attribute__((cdecl)) x86_Video_GetModeInfo(uint16_t mode, void* modeInfoOut);
+int __attribute__((cdecl)) x86_Video_SetMode(uint16_t mode);

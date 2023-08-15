@@ -1,14 +1,14 @@
-BIN_DIR ?= bin
+BUILD_DIR ?= bin
 ASM = nasm
 
 .PHONY: all kernel clean
 
 all: kernel
 
-kernel: $(BIN_DIR)/kernel.bin
+kernel: $(BUILD_DIR)/kernel.bin
 
-$(BIN_DIR)/kernel.bin:
-	$(ASM) -f bin -o $(BIN_DIR)/kernel.bin main.asm
+$(BUILD_DIR)/kernel.bin:
+	$(ASM) -f bin -o $(BUILD_DIR)/kernel.bin main.asm
 
 clean:
-	rm -f $(BIN_DIR)/kernel.bin
+	rm -f $(BUILD_DIR)/kernel.bin

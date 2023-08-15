@@ -1,35 +1,33 @@
-BIN_DIR ?= bin
-ASM = nasm
-CC16 = wcc
-LD16 = wlink
-
-CFLAGS16 = -4 -d3 -s -wx -ms -zl -zq
-ASMFLAGS = -f obj
+TARGET_ASMFLAGS += -f elf
+TARGET_CFLAGS += -ffreestanding -nostdlib
+TARGET_LIBS += -lgcc
+TARGET_LINKFLAGS += -T linker.ld -nostdlib
 
 SOURCES_ASM = $(wildcard *.asm)
 SOURCES_C = $(wildcard *.c)
 
-OBJECTS_ASM = $(patsubst %.asm, $(BIN_DIR)/stage2/asm/%.o, $(SOURCES_ASM))
-OBJECTS_C = $(patsubst %.c, $(BIN_DIR)/stage2/c/%.o, $(SOURCES_C))
+OBJECTS_ASM = $(patsubst %.asm, $(BUILD_DIR)/stage2/asm/%.o, $(SOURCES_ASM))
+OBJECTS_C = $(patsubst %.c, $(BUILD_DIR)/stage2/c/%.o, $(SOURCES_C))
 
 .PHONY: all stage2 clean always
 
 all: stage2
 
-stage2: $(BIN_DIR)/stage2.bin
+stage2: $(BUILD_DIR)/stage2.bin
 
-$(BIN_DIR)/stage2.bin: $(OBJECTS_ASM) $(OBJECTS_C)
-	$(LD16) name $(BIN_DIR)/stage2.bin file \{ $(OBJECTS_ASM) $(OBJECTS_C) \} option map=$(BIN_DIR)/stage2.map @linker.lnk
+$(BUILD_DIR)/stage2.bin: $(OBJECTS_ASM) $(OBJECTS_C)
+	@$(TARGET_LD) $(TARGET_LINKFLAGS) -Wl,-Map=$(BUILD_DIR)/stage2.map -o $@ $^ $(TARGET_LIBS)
+	@echo "Stage2: Done"
 
-$(BIN_DIR)/stage2/c/%.o: %.c always
-	$(CC16) $(CFLAGS16) -fo=$@ $<
+$(BUILD_DIR)/stage2/c/%.o: %.c
+	@mkdir -p $(@D)
+	@$(TARGET_CC) $(TARGET_CFLAGS) -c -o $@ $<
+	@echo $< ": Done"
 
-$(BIN_DIR)/stage2/asm/%.o: %.asm always
-	$(ASM) $(ASMFLAGS) -o $@ $<
-
-always:
-	mkdir -p $(BIN_DIR)/stage2/c
-	mkdir -p $(BIN_DIR)/stage2/asm
+$(BUILD_DIR)/stage2/asm/%.o: %.asm
+	@mkdir -p $(@D)
+	@$(TARGET_ASM) $(TARGET_ASMFLAGS) -o $@ $<
+	@echo $< ": Done"
 
 clean:
-	rm -f $(BIN_DIR)/stage2.bin
+	rm -f $(BUILD_DIR)/stage2.bin

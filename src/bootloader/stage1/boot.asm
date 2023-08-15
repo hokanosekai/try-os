@@ -180,7 +180,7 @@ start:
   ; jump to stage2
   mov dl, [ebr_drive_number]        ; dl = drive number (boot drive)
 
-  mov ax, stage2_LOAD_SEGMENT       ; ax = stage2_LOAD_SEGMENT
+  mov ax, STAGE2_LOAD_SEGMENT       ; ax = stage2_LOAD_SEGMENT
   mov ds, ax                        ; ds = ax
   mov es, ax                        ; es = ax
 
