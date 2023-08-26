@@ -4,17 +4,43 @@
 #include "memdefs.h"
 #include "memory.h"
 #include "vbe.h"
+#include "disk.h"
+#include "fat.h"
+
 
 #define COLOR(r,g,b) ((b) | (g << 8) | (r << 16))
 
-void __attribute__((cdecl)) start(uint16_t bootdrive) {
+void __attribute__((cdecl)) start(uint16_t drive) {
   cls();
 
-/*
+  disk_t disk;
+  if (!disk_init(&disk, drive)) {
+    printf("Disk init failed\n");
+    goto end;
+  }
+
+  if (!fat_init(&disk)) {
+    printf("FAT init failed\n");
+    goto end;
+  }
+
+  // Read test.txt file
+  char buffer[512];
+  fat_file_t* file = fat_open(&disk, "/test.txt");
+  uint32_t read;
+  read = fat_read(&disk, file, sizeof(buffer), buffer);
+  if (read != file->size) {
+    printf("File read failed\n");
+    goto end;
+  }
+
+  fat_close(file);
+  printf("%s\n", buffer);
+
   const int width = 1024;
   const int height = 768;
   const int bpp = 32;
-  uint16_t pickedMode = 0x0000; // 0xFFFF = no mode, 0x0000 = text mode, 0x0100 = 320x200x8, 0x0101 = 320x200x16, 0x0102 = 320x200x24, 0x0103 = 320x200x32, etc.
+  uint16_t pickedMode = 0xFFFF;
 
   vbe_info_t* info = (vbe_info_t*)MEMORY_VESA_INFO;
   vbe_mode_info_t* modeInfo = (vbe_mode_info_t*)MEMORY_MODE_INFO;
@@ -34,15 +60,22 @@ void __attribute__((cdecl)) start(uint16_t bootdrive) {
       }
     }
 
-    if (pickedMode != 0xFFFF && VBE_SetMode(pickedMode)) {
+    /*if (pickedMode != 0xFFFF && VBE_SetMode(pickedMode)) {
       uint32_t* fb = (uint32_t*)modeInfo->framebuffer;
       int w = modeInfo->width;
       int h = modeInfo->height;
-      for (int y = 0; y < h; y++) {
-        for (int x = 0; x < w; x++)
-          fb[y * modeInfo->pitch / 4 + x] = COLOR(128, 58, 175);
+      int i = 0;
+      while (true)
+      {
+        for (int y = 0; y < h; y++) {
+          for (int x = 0; x < w; x++)
+          {
+            fb[y * w + x] = COLOR(i * x, i * y, i * x * y);
+          }
+        }
+        if (i++ > 99) i = 0;
       }
-    }
+    }*/
 
     printf("VBE info:\n");
     printf("  Signature: %c%c%c%c\n", info->signature[0], info->signature[1], info->signature[2], info->signature[3]);
@@ -53,9 +86,8 @@ void __attribute__((cdecl)) start(uint16_t bootdrive) {
     printf("  Total Memory: %x\n", info->total_memory);
   } else {
     printf("Can't get controller info\n");
-  }*/
+  }
 
-  printf("Hello, world!\n");
-
+end:
   for (;;);
 }

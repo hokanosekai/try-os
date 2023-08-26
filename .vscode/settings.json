@@ -2,6 +2,10 @@
   "C_Cpp.errorSquiggles": "disabled",
   "files.associations": {
     "*.pill": "pillar",
-    "stdio.h": "c"
+    "stdio.h": "c",
+    "*.inc": "c",
+    "buffer": "c",
+    "istream": "c",
+    "*.tcc": "c"
   }
 }

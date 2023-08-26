@@ -170,8 +170,8 @@ start:
   and ax, 0x0FFF                    ; ax = ax & 0x0FFF (next cluster)
 
 .next_cluster:
-  cmp ax, 0x0FF8                   ; compare ax and 0x0FF8
-  jae .read_done             ; if ax >= 0x0FF8, jump to .read_done
+  cmp ax, 0x0FF8                    ; compare ax and 0x0FF8
+  jae .read_done                    ; if ax >= 0x0FF8, jump to .read_done
 
   mov [stage2_cluster], ax          ; stage2_cluster = next cluster
   jmp .load_stage2_loop             ; jump to .load_stage2_loop

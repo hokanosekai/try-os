@@ -246,7 +246,7 @@ x86_Video_GetVbeInfo:
   push ebp              ; save ebp (Note: bochs vbe change ebp)
 
   ; call BIOS video interrupt
-  mov ax, 4f00h         ; int 10h, ax=4f00h (0x4f00 = get vbe info)
+  mov ax, 0x4f00        ; int 10h, ax=4f00h (0x4f00 = get vbe info)
   LinearToSegOffset [bp + 8], es, edi, di
   int 10h               ; call BIOS video interrupt
 
@@ -256,7 +256,7 @@ x86_Video_GetVbeInfo:
 
   ; put status in eax
   mov al, ah            ; al = ah (status)
-  and eax, 0ffh         ; eax = eax & 0xff (status)
+  and eax, 0xff         ; eax = eax & 0xff (status)
   jmp .cont             ; continue
 
 .error:
@@ -294,7 +294,7 @@ x86_Video_GetModeInfo:
   push ecx              ; save ecx
 
   ; call BIOS video interrupt
-  mov ax, 4f01h         ; int 10h, ax=4f01h (0x4f01 = get mode info)
+  mov ax, 0x4f01        ; int 10h, ax=4f01h (0x4f01 = get mode info)
   mov cx, [bp + 8]      ; cx = mode number
   LinearToSegOffset [bp + 12], es, edi, di
   int 10h               ; call BIOS video interrupt
@@ -305,7 +305,7 @@ x86_Video_GetModeInfo:
 
   ; put status in eax
   mov al, ah            ; al = ah (status)
-  and eax, 0ffh         ; eax = eax & 0xff (status)
+  and eax, 0xff         ; eax = eax & 0xff (status)
   jmp .cont             ; continue
 
 .error:

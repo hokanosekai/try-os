@@ -119,8 +119,8 @@ LoadGDT:
   lgdt [g_GDTDescriptor]     ; load GDT
   ret
 
-KbdControllerDataPort         equ 60h
-KbdControllerCommandPort      equ 64h
+KbdControllerDataPort         equ 0x60
+KbdControllerCommandPort      equ 0x64
 KbdControllerDisableKeyboard  equ 0xAD
 KbdControllerEnableKeyboard   equ 0xAE
 KbdControllerReadStatus       equ 0xD0

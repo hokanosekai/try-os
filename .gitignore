@@ -1,3 +1,4 @@
 *.bin
 bin/*
 toolchain/*
+bochs-2.7.pre1/*
