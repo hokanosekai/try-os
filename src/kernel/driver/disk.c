@@ -1,6 +1,6 @@
 #include "disk.h"
 #include "x86.h"
-#include "stdio.h"
+#include "../lib/stdio.h"
 
 bool disk_init(disk_t* disk, uint8_t id) {
   uint8_t type;

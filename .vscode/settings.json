@@ -6,6 +6,12 @@
     "*.inc": "c",
     "buffer": "c",
     "istream": "c",
-    "*.tcc": "c"
+    "*.tcc": "c",
+    "memory.h": "c",
+    "string.h": "c",
+    "ctype.h": "c",
+    "stddef.h": "c",
+    "memdefs.h": "c",
+    "minmax.h": "c"
   }
 }

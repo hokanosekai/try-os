@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include "vbe.h"
 #include "x86.h"
-#include "memory.h"
+#include "../lib/memory.h"
 
 bool VBE_GetControllerInfo(vbe_info_t* info) {
   if (info == NULL) return false;

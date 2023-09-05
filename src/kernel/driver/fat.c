@@ -1,12 +1,12 @@
 #include "fat.h"
 #include "disk.h"
-#include "memory.h"
-#include "string.h"
-#include "stdio.h"
-#include "ctype.h"
+#include "../lib/memory.h"
+#include "../lib/string.h"
+#include "../lib/stdio.h"
+#include "../lib/ctype.h"
 #include <stddef.h>
-#include "memdefs.h"
-#include "minmax.h"
+#include "../lib/memdefs.h"
+#include "../lib/minmax.h"
 
 
 #define SECTOR_SIZE         512

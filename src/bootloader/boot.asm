@@ -102,54 +102,54 @@ start:
   xor bx, bx                        ; bx = 0 (index of root directory entry)
   mov di, buffer                    ; di = buffer
 
-.search_stage2:
-  mov si, stage2_filename           ; si = stage2_filename
-  mov cx, 11                        ; cx = stage2_filename_len
+.search_kernel:
+  mov si, kernel_filename           ; si = kernel_filename
+  mov cx, 11                        ; cx = kernel_filename_len
   push di                           ; save di
   repe cmpsb                        ; compare si and di, decrement cx
   pop di                            ; restore di
-  je .stage2_found                  ; if cx == 0, jump to .stage2_found
+  je .kernel_found                  ; if cx == 0, jump to .kernel_found
 
   ; if no stage2 found, we check the next entry
   add di, 32                        ; di = di + 32 (next entry)
   inc bx                            ; bx = bx + 1 (next entry)
   cmp bx, [bdb_dir_entries_count]   ; compare bx and number of entries
-  jl .search_stage2                 ; if bx < number of entries, jump to .search_stage2
+  jl .search_kernel                 ; if bx < number of entries, jump to .search_kernel
 
   ; if stage2 not found, print error message and halt
-  jmp stage2_not_found              ; jump to stage2_not_found
+  jmp kernel_not_found              ; jump to kernel_not_found
 
-.stage2_found:
+.kernel_found:
   ; di points to stage2 file entry
   mov ax, [di + 26]                 ; ax = di + 26 (LBA of stage2 file)
-  mov [stage2_cluster], ax          ; stage2_cluster = LBA of stage2 file
+  mov [kernel_cluster], ax          ; kernel_cluster = LBA of stage2 file
 
   ; load FAT from disk to memory
   mov ax, [bdb_reserved_sectors]    ; ax = reserved sectors
   mov bx, buffer                    ; es:bx = buffer
-  mov cl, [bdb_sectors_per_fat]       ; cl = sectors per FAT
+  mov cl, [bdb_sectors_per_fat]     ; cl = sectors per FAT
   mov dl, [ebr_drive_number]        ; dl = drive number
   call read_disk                    ; call read_disk(reserved sectors, sectors per FAT, buffer)
 
   ; load stage2 from disk to memory
-  mov bx, STAGE2_LOAD_SEGMENT       ; es:bx = stage2_LOAD_SEGMENT
+  mov bx, KERNEL_LOAD_SEGMENT       ; es:bx = KERNEL_LOAD_SEGMENT
   mov es, bx                        ; es = bx
-  mov bx, STAGE2_LOAD_OFFSET        ; bx = stage2_LOAD_OFFSET
+  mov bx, KERNEL_LOAD_OFFSET        ; bx = KERNEL_LOAD_OFFSET
 
-.load_stage2_loop:
+.load_kernel_loop:
   ; read next cluster
-  mov ax, [stage2_cluster]          ; ax = stage2_cluster
+  mov ax, [kernel_cluster]          ; ax = kernel_cluster
 
   add ax, 31                        ; ax = ax + 31
 
   mov cl, 1                         ; cl = 1
   mov dl, [ebr_drive_number]        ; dl = drive number
-  call read_disk                    ; call read_disk(stage2_cluster, 1, es:bx)
+  call read_disk                    ; call read_disk(kernel_cluster, 1, es:bx)
 
   add bx, [bdb_bytes_per_sector]    ; bx = bx + bytes per sector
 
   ; compute next cluster
-  mov ax, [stage2_cluster]          ; ax = stage2_cluster
+  mov ax, [kernel_cluster]          ; ax = kernel_cluster
   mov cx, 3                         ; cx = 3
   mul cx                            ; ax = ax * cx
   mov cx, 2                         ; cx = 2
@@ -173,18 +173,18 @@ start:
   cmp ax, 0x0FF8                    ; compare ax and 0x0FF8
   jae .read_done                    ; if ax >= 0x0FF8, jump to .read_done
 
-  mov [stage2_cluster], ax          ; stage2_cluster = next cluster
-  jmp .load_stage2_loop             ; jump to .load_stage2_loop
+  mov [kernel_cluster], ax          ; kernel_cluster = next cluster
+  jmp .load_kernel_loop             ; jump to .load_kernel_loop
 
 .read_done:
   ; jump to stage2
   mov dl, [ebr_drive_number]        ; dl = drive number (boot drive)
 
-  mov ax, STAGE2_LOAD_SEGMENT       ; ax = stage2_LOAD_SEGMENT
+  mov ax, KERNEL_LOAD_SEGMENT       ; ax = KERNEL_LOAD_SEGMENT
   mov ds, ax                        ; ds = ax
   mov es, ax                        ; es = ax
 
-  jmp STAGE2_LOAD_SEGMENT:STAGE2_LOAD_OFFSET
+  jmp KERNEL_LOAD_SEGMENT:KERNEL_LOAD_OFFSET
 
   jmp wait_for_keypress             ; jump to wait_for_keypress
 
@@ -197,9 +197,9 @@ floppy_error:
   call puts                         ; call puts(msg_read_error)
   jmp wait_for_keypress             ; jump to wait_for_keypress
 
-stage2_not_found:
-  mov si, msg_stage2_not_found      ; si = msg_stage2_not_found
-  call puts                         ; call puts(msg_stage2_not_found)
+kernel_not_found:
+  mov si, msg_kernel_not_found      ; si = msg_kernel_not_found
+  call puts                         ; call puts(msg_kernel_not_found)
   jmp wait_for_keypress             ; jump to wait_for_keypress
 
 ; wait for keypress
@@ -332,14 +332,14 @@ reset_disk:
   ret
 
 msg_loading:            db 'Loading', ENDL, 0
-msg_stage2_not_found:   db 'STAGE2.BIN not found!', ENDL, 0
+msg_kernel_not_found:   db 'KERNEL.BIN not found!', ENDL, 0
 msg_read_error:         db 'Error reading disk!', ENDL, 0
 
-stage2_filename:        db 'STAGE2  BIN'
-stage2_cluster:         dw 0
+kernel_filename:        db 'KERNEL  BIN'
+kernel_cluster:         dw 0
 
-STAGE2_LOAD_SEGMENT     equ 0x0
-STAGE2_LOAD_OFFSET      equ 0x500
+KERNEL_LOAD_SEGMENT     equ 0x0
+KERNEL_LOAD_OFFSET      equ 0x500
 
 times 510-($-$$) db 0               ; pad with zeros until 510 bytes
 dw 0AA55h                           ; boot signature

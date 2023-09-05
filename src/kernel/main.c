@@ -1,11 +1,11 @@
 #include <stdint.h>
-#include "stdio.h"
-#include "x86.h"
-#include "memdefs.h"
-#include "memory.h"
-#include "vbe.h"
-#include "disk.h"
-#include "fat.h"
+#include "lib/stdio.h"
+#include "driver/x86.h"
+#include "lib/memdefs.h"
+#include "lib/memory.h"
+#include "driver/vbe.h"
+#include "driver/disk.h"
+#include "driver/fat.h"
 
 
 #define COLOR(r,g,b) ((b) | (g << 8) | (r << 16))
@@ -54,12 +54,17 @@ void __attribute__((cdecl)) start(uint16_t drive) {
       }
       bool hasFB = (modeInfo->attributes & 0x90) == 0x90;
 
+      printf("Mode: %x\n", mode[i]);
+      printf("  Width: %d\n  Height: %d\n  BPP: %d\n", modeInfo->width, modeInfo->height, modeInfo->bpp);
+
       if (hasFB && modeInfo->width == width && modeInfo->height == height && modeInfo->bpp == bpp) {
         pickedMode = mode[i];
         break;
       }
     }
 
+    printf("Picked mode: %x\n", pickedMode);
+    if (pickedMode != 0xFFFF) printf("  Width: %d\n  Height: %d\n  BPP: %d\n", modeInfo->width, modeInfo->height, modeInfo->bpp);
     /*if (pickedMode != 0xFFFF && VBE_SetMode(pickedMode)) {
       uint32_t* fb = (uint32_t*)modeInfo->framebuffer;
       int w = modeInfo->width;
@@ -70,7 +75,7 @@ void __attribute__((cdecl)) start(uint16_t drive) {
         for (int y = 0; y < h; y++) {
           for (int x = 0; x < w; x++)
           {
-            fb[y * w + x] = COLOR(i * x, i * y, i * x * y);
+            fb[y * w + x] = COLOR(y, x, x * y);
           }
         }
         if (i++ > 99) i = 0;
