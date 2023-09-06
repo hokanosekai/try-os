@@ -43,8 +43,8 @@ void __attribute__((cdecl)) start(uint16_t drive) {
     goto end;
   }
 
-  window_clear(g_Window, COLOR_BLACK);
-  window_draw_pixel(g_Window, 45, 56, COLOR_GREEN);
+  //window_clear(g_Window, COLOR_BLACK);
+  /*window_draw_pixel(g_Window, 45, 56, COLOR_GREEN);
 
   window_draw_line(g_Window, 0, 0, 799, 599, COLOR_WHITE);
 
@@ -55,7 +55,16 @@ void __attribute__((cdecl)) start(uint16_t drive) {
   window_draw_circle_fill(g_Window, 400, 300, 50, COLOR_GREEN);
 
   window_draw_triangle(g_Window, 100, 100, 200, 200, 300, 100, COLOR_CYAN);
-  window_draw_triangle_fill(g_Window, 95, 30, 20, 40, 67, 30, COLOR_WHITE);
+  window_draw_triangle_fill(g_Window, 95, 30, 20, 40, 67, 30, COLOR_WHITE);*/
+
+  window_draw_char(g_Window, 100, 100, 'A', COLOR_WHITE);
+  window_draw_char(g_Window, 110, 100, 'B', COLOR_WHITE);
+  window_draw_char(g_Window, 120, 100, 'C', COLOR_WHITE);
+  window_draw_char(g_Window, 130, 100, 'D', COLOR_WHITE);
+  window_draw_char(g_Window, 140, 100, 'E', COLOR_WHITE);
+  window_draw_char(g_Window, 150, 100, 'F', COLOR_WHITE);
+
+  window_draw_string(g_Window, 100, 120, "ABCDEF", COLOR_WHITE);
 
 end:
   for (;;);

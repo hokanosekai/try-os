@@ -69,3 +69,15 @@ void window_draw_triangle_fill(window_t* window,
                                const int x3,
                                const int y3,
                                const uint32_t color);
+
+void window_draw_char(window_t* window,
+                      const int x,
+                      const int y,
+                      const char c,
+                      const uint32_t color);
+
+void window_draw_string(window_t* window,
+                        const int x,
+                        const int y,
+                        const char* str,
+                        const uint32_t color);

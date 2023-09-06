@@ -5,6 +5,8 @@
 #include "colors.h"
 #include "math.h"
 #include "minmax.h"
+#include "string.h"
+#include "font.h"
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -239,5 +241,39 @@ void window_draw_triangle_fill(window_t* window,
         window_draw_pixel(window, x, y, color);
       }
     }
+  }
+}
+
+void window_draw_char(window_t* window,
+                      const int x,
+                      const int y,
+                      const char c,
+                      const uint32_t color) {
+  int8_t* font;
+  font_get(&font, c);
+
+  printf("Drawing char %c\n", c);
+
+  for (int i = 0; i < 10; i++) {
+    int line = font[i];
+    printf("Line %x\n", line);
+    for (int j = 7; j >= 0; j--) {
+      int bit = (line >> j) & 1;
+      //printf("Bit %d\n", bit);
+      if (bit) {
+        window_draw_pixel(window, x + (7 - j), y + i, color);
+      }
+    }
+  }
+}
+
+void window_draw_string(window_t* window,
+                        const int x,
+                        const int y,
+                        const char* str,
+                        const uint32_t color) {
+  int len = strlen(str);
+  for (int i = 0; i < len; i++) {
+    window_draw_char(window, x + i * 10, y, str[i], color);
   }
 }
