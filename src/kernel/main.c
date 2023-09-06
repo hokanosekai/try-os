@@ -43,8 +43,13 @@ void __attribute__((cdecl)) start(uint16_t drive) {
     goto end;
   }
 
-  window_clear(g_Window, COLOR_RED);
+  window_clear(g_Window, COLOR_BLACK);
   window_draw_pixel(g_Window, 45, 56, COLOR_GREEN);
+
+  window_draw_line(g_Window, 0, 0, 799, 599, COLOR_WHITE);
+
+  window_draw_rect(g_Window, 100, 100, 200, 200, COLOR_BLUE);
+  window_draw_rect_fill(g_Window, 300, 300, 200, 200, COLOR_RED);
 
 end:
   for (;;);

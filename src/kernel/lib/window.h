@@ -18,3 +18,24 @@ void window_draw_pixel(window_t* window,
                        const int x,
                        const int y,
                        const uint32_t color);
+
+void window_draw_line(window_t* window,
+                      const int x1,
+                      const int y1,
+                      const int x2,
+                      const int y2,
+                      const uint32_t color);
+
+void window_draw_rect(window_t* window,
+                      const int x,
+                      const int y,
+                      const int width,
+                      const int height,
+                      const uint32_t color);
+
+void window_draw_rect_fill(window_t* window,
+                           const int x,
+                           const int y,
+                           const int width,
+                           const int height,
+                           const uint32_t color);
