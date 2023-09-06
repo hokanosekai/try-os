@@ -12,6 +12,7 @@
     "ctype.h": "c",
     "stddef.h": "c",
     "memdefs.h": "c",
-    "minmax.h": "c"
+    "minmax.h": "c",
+    "vbe.h": "c"
   }
 }
