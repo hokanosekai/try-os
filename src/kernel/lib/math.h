@@ -2,4 +2,4 @@
 
 #include <stdint.h>
 
-int abs(int x);
+#define abs(x) ((x) < 0 ? -(x) : (x))

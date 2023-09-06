@@ -51,6 +51,12 @@ void __attribute__((cdecl)) start(uint16_t drive) {
   window_draw_rect(g_Window, 100, 100, 200, 200, COLOR_BLUE);
   window_draw_rect_fill(g_Window, 300, 300, 200, 200, COLOR_RED);
 
+  window_draw_circle(g_Window, 400, 300, 100, COLOR_YELLOW);
+  window_draw_circle_fill(g_Window, 400, 300, 50, COLOR_GREEN);
+
+  window_draw_triangle(g_Window, 100, 100, 200, 200, 300, 100, COLOR_CYAN);
+  window_draw_triangle_fill(g_Window, 95, 30, 20, 40, 67, 30, COLOR_WHITE);
+
 end:
   for (;;);
 }

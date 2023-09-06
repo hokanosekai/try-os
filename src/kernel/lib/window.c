@@ -4,6 +4,7 @@
 #include "memdefs.h"
 #include "colors.h"
 #include "math.h"
+#include "minmax.h"
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -128,5 +129,115 @@ void window_draw_rect_fill(window_t* window,
   for (int i = 0; i < height; i++) {
     for (int j = 0; j < width; j++)
       fb[(y + i) * window->mode_info->width + x + j] = color;
+  }
+}
+
+void window_draw_circle(window_t* window,
+                        const int x,
+                        const int y,
+                        const int radius,
+                        const uint32_t color) {
+  int x1 = 0;
+  int y1 = radius;
+  int delta = 1 - 2 * radius;
+
+  int error = 0;
+
+  while (y1 >= 0) {
+    window_draw_pixel(window, x + x1, y + y1, color);
+    window_draw_pixel(window, x + x1, y - y1, color);
+    window_draw_pixel(window, x - x1, y + y1, color);
+    window_draw_pixel(window, x - x1, y - y1, color);
+
+    error = 2 * (delta + y1) - 1;
+    if (delta < 0 && error <= 0) {
+      delta += 2 * ++x1 + 1;
+      continue;
+    }
+
+    error = 2 * (delta - x1) - 1;
+    if (delta > 0 && error > 0) {
+      delta += 1 - 2 * --y1;
+      continue;
+    }
+
+    x1++;
+    delta += 2 * (x1 - y1);
+    y1--;
+  }
+}
+
+void window_draw_circle_fill(window_t* window,
+                             const int x,
+                             const int y,
+                             const int radius,
+                             const uint32_t color) {
+  int x1 = 0;
+  int y1 = radius;
+  int delta = 1 - 2 * radius;
+
+  int error = 0;
+
+  while (y1 >= 0) {
+    window_draw_line(window, x + x1, y + y1, x + x1, y - y1, color);
+    window_draw_line(window, x - x1, y + y1, x - x1, y - y1, color);
+
+    error = 2 * (delta + y1) - 1;
+    if (delta < 0 && error <= 0) {
+      delta += 2 * ++x1 + 1;
+      continue;
+    }
+
+    error = 2 * (delta - x1) - 1;
+    if (delta > 0 && error > 0) {
+      delta += 1 - 2 * --y1;
+      continue;
+    }
+
+    x1++;
+    delta += 2 * (x1 - y1);
+    y1--;
+  }
+}
+
+void window_draw_triangle(window_t* window,
+                          const int x1,
+                          const int y1,
+                          const int x2,
+                          const int y2,
+                          const int x3,
+                          const int y3,
+                          const uint32_t color) {
+  window_draw_line(window, x1, y1, x2, y2, color);
+  window_draw_line(window, x2, y2, x3, y3, color);
+  window_draw_line(window, x3, y3, x1, y1, color);
+}
+
+/**
+ * TODO : Fix this function
+ */
+void window_draw_triangle_fill(window_t* window,
+                               const int x1,
+                               const int y1,
+                               const int x2,
+                               const int y2,
+                               const int x3,
+                               const int y3,
+                               const uint32_t color) {
+  int minX = min(x1, min(x2, x3));
+  int minY = min(y1, min(y2, y3));
+  int maxX = max(x1, max(x2, x3));
+  int maxY = max(y1, max(y2, y3));
+
+  for (int y = minY; y <= maxY; y++) {
+    for (int x = minX; x <= maxX; x++) {
+      int w1 = (x1 * (y2 - y3) + (y - y1) * (x2 - x3) + x3 * y1 - x2 * y1) / 2;
+      int w2 = (x2 * (y3 - y1) + (y - y2) * (x3 - x1) + x1 * y2 - x3 * y2) / 2;
+      int w3 = (x3 * (y1 - y2) + (y - y3) * (x1 - x2) + x2 * y3 - x1 * y3) / 2;
+
+      if (w1 >= 0 && w2 >= 0 && w3 >= 0) {
+        window_draw_pixel(window, x, y, color);
+      }
+    }
   }
 }

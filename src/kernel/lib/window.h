@@ -39,3 +39,33 @@ void window_draw_rect_fill(window_t* window,
                            const int width,
                            const int height,
                            const uint32_t color);
+
+void window_draw_circle(window_t* window,
+                        const int x,
+                        const int y,
+                        const int radius,
+                        const uint32_t color);
+
+void window_draw_circle_fill(window_t* window,
+                             const int x,
+                             const int y,
+                             const int radius,
+                             const uint32_t color);
+
+void window_draw_triangle(window_t* window,
+                          const int x1,
+                          const int y1,
+                          const int x2,
+                          const int y2,
+                          const int x3,
+                          const int y3,
+                          const uint32_t color);
+
+void window_draw_triangle_fill(window_t* window,
+                               const int x1,
+                               const int y1,
+                               const int x2,
+                               const int y2,
+                               const int x3,
+                               const int y3,
+                               const uint32_t color);
