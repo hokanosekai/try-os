@@ -57,6 +57,7 @@ void __attribute__((cdecl)) start(uint16_t drive) {
   window_draw_triangle(g_Window, 100, 100, 200, 200, 300, 100, COLOR_CYAN);
   window_draw_triangle_fill(g_Window, 95, 30, 20, 40, 67, 30, COLOR_WHITE);*/
 
+  window_draw_pixel(g_Window, 100, 100, COLOR_GREEN);
   window_draw_char(g_Window, 100, 100, 'A', COLOR_WHITE);
   window_draw_char(g_Window, 110, 100, 'B', COLOR_WHITE);
   window_draw_char(g_Window, 120, 100, 'C', COLOR_WHITE);
@@ -64,7 +65,9 @@ void __attribute__((cdecl)) start(uint16_t drive) {
   window_draw_char(g_Window, 140, 100, 'E', COLOR_WHITE);
   window_draw_char(g_Window, 150, 100, 'F', COLOR_WHITE);
 
-  window_draw_string(g_Window, 100, 120, "ABCDEF", COLOR_WHITE);
+  window_draw_string(g_Window, 100, 120, "ABC DEF GHI JKL MNO PQR\n STU VWX YZ@ 0123456789! .,:;!? +-*/=\\_<>|{}()[]#%", COLOR_WHITE);
+
+  window_draw_string(g_Window, 100, 160, buffer, COLOR(34, 65, 178));
 
 end:
   for (;;);
