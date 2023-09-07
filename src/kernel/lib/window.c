@@ -249,6 +249,9 @@ void window_draw_char(window_t* window,
                       const int y,
                       const char c,
                       const uint32_t color) {
+  // Do not draw new line and carriage return
+  if (c == '\n' || c == '\r') return;
+
   int8_t* font;
   font_get(&font, c);
 
@@ -269,13 +272,31 @@ void window_draw_string(window_t* window,
                         const char* str,
                         const uint32_t color) {
   int len = strlen(str);
-  int width = len * 10;
   int dy = y;
+  int dx = x;
+
   for (int i = 0; i < len; i++) {
+    dx += 10;
+
+    // New line
     if (str[i] == '\n') {
       dy += 15;
+      if (str[i + 1] != '\r') dx = x;
       continue;
     }
-    window_draw_char(window, x + i * 10, y, str[i], color);
+
+    // Carriage return
+    if (str[i] == '\r') {
+      dx = x;
+      continue;
+    }
+
+    // Overflow
+    if (dx + 10 > window->mode_info->width) {
+      dy += 15;
+      dx = x;
+    }
+
+    window_draw_char(window, dx, dy, str[i], color);
   }
 }

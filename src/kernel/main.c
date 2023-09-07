@@ -65,9 +65,9 @@ void __attribute__((cdecl)) start(uint16_t drive) {
   window_draw_char(g_Window, 140, 100, 'E', COLOR_WHITE);
   window_draw_char(g_Window, 150, 100, 'F', COLOR_WHITE);
 
-  window_draw_string(g_Window, 100, 120, "ABC DEF GHI JKL MNO PQR\n STU VWX YZ@ 0123456789! .,:;!? +-*/=\\_<>|{}()[]#%", COLOR_WHITE);
+  window_draw_string(g_Window, 100, 120, buffer, COLOR_WHITE);
 
-  window_draw_string(g_Window, 100, 160, buffer, COLOR(34, 65, 178));
+  //window_draw_string(g_Window, 100, 160, buffer, COLOR(34, 65, 178));
 
 end:
   for (;;);
