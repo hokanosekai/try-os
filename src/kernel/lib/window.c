@@ -40,10 +40,10 @@ bool window_init(window_t* window,
     return false;
   }
 
-  if (!VBE_SetMode(pickedMode)) {
+  /*if (!VBE_SetMode(pickedMode)) {
     printf("Can't set mode %x\n", pickedMode);
     return false;
-  }
+  }*/
 
   window->info = info;
   window->mode_info = modeInfo;

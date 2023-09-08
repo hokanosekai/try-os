@@ -3,6 +3,7 @@
 #include "lib/memdefs.h"
 #include "lib/memory.h"
 #include "driver/disk.h"
+#include "driver/keyboard.h"
 #include "lib/window.h"
 #include "driver/fat.h"
 #include "lib/colors.h"
@@ -42,6 +43,15 @@ void __attribute__((cdecl)) start(uint16_t drive) {
     printf("Window init failed\n");
     goto end;
   }
+
+  while (1)
+  {
+    uint8_t scanCode;
+    uint8_t asciiCode;
+    keyboard_get_key(&scanCode, &asciiCode);
+    printf("Scan code: %x, ASCII code: %c\n", scanCode, asciiCode);
+  }
+  
 
   //window_clear(g_Window, COLOR_BLACK);
   /*window_draw_pixel(g_Window, 45, 56, COLOR_GREEN);

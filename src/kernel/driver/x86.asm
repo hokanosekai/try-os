@@ -82,6 +82,13 @@ x86_inb:
   in al, dx            ; inb dx, al
   ret
 
+; x86_Disk_GetDriveParams
+; Args:
+;    1 - drive number
+;    2 - (out) drive type
+;    3 - (out) cylinders
+;    4 - (out) sectors
+;    5 - (out) heads
 global x86_Disk_GetDriveParams
 x86_Disk_GetDriveParams:
   [bits 32]
@@ -112,7 +119,7 @@ x86_Disk_GetDriveParams:
   sbb eax, 0            ; eax = 0 if carry flag is set
 
   LinearToSegOffset [bp + 12], es, esi, si
-  mov [es:si], bl
+  mov [es:si], bl       ; store drive type in drive type
 
   ; cylindar count
   mov bl, ch            ; bl = ch (lower 8 bits of cylindar count)
@@ -121,21 +128,21 @@ x86_Disk_GetDriveParams:
   inc bx                ; bx = bx + 1 (cylindar count)
 
   LinearToSegOffset [bp + 16], es, esi, si
-  mov [es:si], bx
+  mov [es:si], bx       ; store cylindar count in cylindar count
 
   ; sector count
   xor ch, ch            ; ch = 0 (lower 5 bits in cl)
   and cl, 3fh           ; cl = cl & 3fh (lower 6 bits in cl)
 
   LinearToSegOffset [bp + 20], es, esi, si
-  mov [es:si], cx
+  mov [es:si], cx       ; store sector count in sector count
 
   ; head count
   mov cl, dh            ; cl = dh (lower 8 bits of head count)
   inc cx                ; cx = cx + 1 (head count)
 
   LinearToSegOffset [bp + 24], es, esi, si
-  mov [es:si], cx
+  mov [es:si], cx       ; store head count in head count
 
   ; restore registers
   pop di
