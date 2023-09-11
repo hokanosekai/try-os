@@ -11,32 +11,47 @@
 
 
 void __attribute__((cdecl)) start(uint16_t drive) {
-  // Initialize VESA
-  printf("Initializing VESA...\n");
-  if (video_init() != 0) {
-    printf("VESA init failed\n");
-    goto end;
-  } else {
-    video_disable_VESA();
-    printf("VESA init success\n");
-  }
+  cls();
 
   disk_t disk;
-  printf("Initializing disk...\n");
+  printf("Initializing DISK...");
   if (!disk_init(&disk, drive)) {
-    printf("Disk init failed\n");
+    printf("Disk init failed");
+    printERR();
     goto end;
   } else {
-    printf("Disk init success\n");
+    printOK();
   }
 
-  printf("Initializing FAT...\n");
+  printf("Initializing FAT...");
   if (!fat_init(&disk)) {
-    printf("FAT init failed\n");
+    printf("FAT init failed");
+    printERR();
     goto end;
   } else {
-    printf("FAT init success\n");
+    printOK();
   }
+
+    // Initialize VESA
+  printf("Initializing VESA...");
+  if (video_init() != 0) {
+    printf("VESA init failed");
+    printERR();
+    goto end;
+  } else {
+    printOK();
+  }
+
+  // Enable VESA
+  printf("Enabling VESA...");
+  printERR(); // Disable for now
+  /*if (video_enable_VESA() != 0) {
+    printf("VESA enable failed");
+    printERR();
+    goto end;
+  } else {
+    printOK();
+  }*/
 
   // Read test.txt file
   char buffer[512];

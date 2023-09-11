@@ -9,6 +9,9 @@ void puts(const char* str);
 void printf(const char* format, ...);
 void print_buffer(const char* msg, const void* buffer, uint32_t size);
 
+void printOK();
+void printERR();
+
 void getc(char* c);
 
 #endif

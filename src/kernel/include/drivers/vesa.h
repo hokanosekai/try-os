@@ -5,6 +5,8 @@
 #include <libc/stdbool.h>
 #include <sys/memdefs.h>
 
+#define VESA_MODE_DISABLE     0x03
+
 typedef struct {
   char signature[4];                  // "VESA" 4 bytes
   uint16_t version;                   // VBE version number (0x0300 for VBE 3.0)
@@ -56,8 +58,8 @@ typedef struct {
 bool VESA_GetControllerInfo(vbe_info_t *info);
 bool VESA_GetModeInfo(uint16_t mode, vbe_mode_info_t *info);
 bool VESA_SetMode(uint16_t mode);
-bool VESA_isInitialized();
-void VESA_SetInitialized(bool value);
+bool VESA_isEnabled();
+void VESA_SetEnabled(bool value);
 void VESA_SetPixel(uint32_t x, uint32_t y, uint32_t color);
 void VESA_clear(uint32_t color);
 

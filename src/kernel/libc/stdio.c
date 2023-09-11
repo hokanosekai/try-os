@@ -17,6 +17,20 @@ void puts(const char *s) {
   video_puts(s);
 }
 
+void printOK() {
+  video_gotoxy(60, video_getrow());
+  video_puts("\033\001[\033\012OK\033\001]\033\007");
+  video_newline();
+  video_setcolor(15);
+}
+
+void printERR() {
+  video_gotoxy(60, video_getrow());
+  video_puts("\033\001[\033\004ERR\033\001]\033\007");
+  video_newline();
+  video_setcolor(15);
+}
+
 const char g_HexChars[] = "0123456789abcdef";
 
 void printf_unsigned(unsigned long long number, int radix) {
