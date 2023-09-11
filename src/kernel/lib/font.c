@@ -1,7 +1,7 @@
-#include "font.h"
-#include "symbols.h"
-#include <stddef.h>
-#include "ctype.h"
+#include <lib/font.h>
+#include <lib/symbols.h>
+#include <libc/stddef.h>
+#include <libc/ctype.h>
 
 int8_t font_unknown[FONT_HEIGHT]        = {UNKNOWN};
 

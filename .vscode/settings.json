@@ -44,6 +44,20 @@
     "io_context": "c",
     "string_view": "c",
     "rope": "c",
-    "slist": "c"
-  }
+    "slist": "c",
+    "x86.h": "c",
+    "io.h": "c",
+    "disk.h": "c",
+    "stdint.h": "c",
+    "stdbool.h": "c",
+    "fat.h": "c",
+    "math.h": "c",
+    "window.h": "c",
+    "vesa.h": "c",
+    "video.h": "c"
+  },
+  "cSpell.words": [
+    "MEMDEFS",
+    "VESA"
+  ]
 }
