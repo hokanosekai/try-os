@@ -8,7 +8,11 @@
 #include <lib/colors.h>
 #include <libc/stddef.h>
 #include <io/video.h>
+#include <arch/gdt.h>
+#include <arch/idt.h>
 
+extern uint8_t __bss_start;
+extern uint8_t __end;
 
 void __attribute__((cdecl)) start(uint16_t drive) {
   cls();
@@ -53,9 +57,25 @@ void __attribute__((cdecl)) start(uint16_t drive) {
     printOK();
   }*/
 
+  memset(&__bss_start, 0, &__end - &__bss_start);
+
+  // Initialize GDT
+  printf("Initializing GDT...");
+  GDT_init();
+  printOK();
+
+  // Initialize IDT
+  printf("Initializing IDT...");
+  IDT_init();
+  printOK();
+
   // Read test.txt file
   char buffer[512];
   fat_file_t* file = fat_open(&disk, "/test.txt");
+  if (!file) {
+    printERR();
+    goto end;
+  }
   uint32_t read;
   read = fat_read(&disk, file, sizeof(buffer), buffer);
   if (read != file->size) {

@@ -54,7 +54,11 @@
     "math.h": "c",
     "window.h": "c",
     "vesa.h": "c",
-    "video.h": "c"
+    "video.h": "c",
+    "iterator": "cpp",
+    "memory": "cpp",
+    "random": "cpp",
+    "idt.h": "c"
   },
   "cSpell.words": [
     "MEMDEFS",
