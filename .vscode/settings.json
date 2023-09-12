@@ -58,7 +58,8 @@
     "iterator": "cpp",
     "memory": "cpp",
     "random": "cpp",
-    "idt.h": "c"
+    "idt.h": "c",
+    "mbr.h": "c"
   },
   "cSpell.words": [
     "MEMDEFS",

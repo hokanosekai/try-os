@@ -57,12 +57,7 @@ void __attribute__((cdecl)) start(uint16_t drive) {
     printOK();
   }*/
 
-  memset(&__bss_start, 0, &__end - &__bss_start);
-
-  // Initialize GDT
-  printf("Initializing GDT...");
-  GDT_init();
-  printOK();
+  //memset(&__bss_start, 0, &__end - &__bss_start);
 
   // Initialize IDT
   printf("Initializing IDT...");
@@ -71,17 +66,18 @@ void __attribute__((cdecl)) start(uint16_t drive) {
 
   // Read test.txt file
   char buffer[512];
+printf("Initializing GDT...");
   fat_file_t* file = fat_open(&disk, "/test.txt");
-  if (!file) {
-    printERR();
-    goto end;
-  }
+printf("Initializing GDT...");
+printf("Initializing GDT...");
   uint32_t read;
   read = fat_read(&disk, file, sizeof(buffer), buffer);
+printf("Initializing GDT...");
   if (read != file->size) {
     printf("File read failed\n");
     goto end;
   }
+printf("Initializing GDT...");
 
   fat_close(file);
   printf("%s\n", buffer);
