@@ -2,33 +2,117 @@
 #include <libc/stdarg.h>
 #include <libc/stdbool.h>
 #include <libc/stdint.h>
-#include <io/video.h>
+#include <io/io.h>
 
+#define SCREEN_WIDTH  80
+#define SCREEN_HEIGHT 25
+#define DEFAULT_COLOR 0x07
+
+uint8_t* g_ScreenBuffer = (uint8_t*)0xB8000;
+int g_CursorX = 0, g_CursorY = 0;
+int g_Color = DEFAULT_COLOR;
+
+void putchr(int x, int y, char c) {
+  g_ScreenBuffer[2 * (y * SCREEN_WIDTH + x)] = c;
+}
+
+void putclr(int x, int y, uint8_t color) {
+  g_ScreenBuffer[2 * (y * SCREEN_WIDTH + x) + 1] = color;
+}
+
+char getchr(int x, int y) {
+  return g_ScreenBuffer[2 * (y * SCREEN_WIDTH + x)];
+}
+
+uint8_t getclr(int x, int y) {
+  return g_ScreenBuffer[2 * (y * SCREEN_WIDTH + x) + 1];
+}
+
+void setcursor(int x, int y) {
+  int pos = y * SCREEN_WIDTH + x;
+
+  outb(0x3D4, 0x0F);
+  outb(0x3D5, (uint8_t)(pos & 0xFF));
+  outb(0x3D4, 0x0E);
+  outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+}
 
 void cls() {
-  video_cls();
+  for (int y = 0; y < SCREEN_HEIGHT; y++) {
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+      putchr(x, y, '\0');
+      putclr(x, y, g_Color);
+    }
+  }
+  g_CursorX = 0;
+  g_CursorY = 0;
+  setcursor(g_CursorX, g_CursorY);
+}
+
+void scrollback(int lines) {
+  for (int y = lines; y < SCREEN_HEIGHT; y++) {
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+      putchr(x, y - lines, getchr(x, y));
+      putclr(x, y - lines, getclr(x, y));
+    }
+  }
+
+  for (int y = SCREEN_HEIGHT - lines; y < SCREEN_HEIGHT; y++) {
+    for (int x = 0; x < SCREEN_WIDTH; x++) {
+      putchr(x, y, '\0');
+      putclr(x, y, g_Color);
+    }
+  }
+
+  g_CursorY -= lines;
 }
 
 void putc(char c) {
-  video_putc(c);
+  outb(0xE9, c);
+  switch (c) {
+    case '\n': g_CursorX = 0;
+               g_CursorY++;
+               break;
+    case '\r': g_CursorX = 0;
+               break;
+    case '\t': for (int i = 0; i < 4 - (g_CursorX % 4); i++) {
+                 putc(' ');
+               }
+               break;
+    case '\033': 
+               break;
+    default:   putchr(g_CursorX, g_CursorY, c);
+               g_CursorX++;
+               break;
+  }
 }
 
 void puts(const char *s) {
-  video_puts(s);
+  while (*s) {
+    if (*s == '\033') {
+      g_Color = *++s;
+    }
+    putc(*s);
+    s++;
+  }
+}
+
+void gotoxy(int x, int y) {
+  g_CursorX = x;
+  g_CursorY = y;
+  setcursor(g_CursorX, g_CursorY);
 }
 
 void printOK() {
-  video_gotoxy(60, video_getrow());
-  video_puts("\033\001[\033\012OK\033\001]\033\007");
-  video_newline();
-  video_setcolor(15);
+  gotoxy(60, g_CursorY);
+  puts("\033\001[\033\012OK\033\001]\033\007\n");
+  g_Color = DEFAULT_COLOR;
 }
 
 void printERR() {
-  video_gotoxy(60, video_getrow());
-  video_puts("\033\001[\033\004ERR\033\001]\033\007");
-  video_newline();
-  video_setcolor(15);
+  gotoxy(60, g_CursorY);
+  puts("\033\001[\033\004ERR\033\001]\033\007\n");
+  g_Color = DEFAULT_COLOR;
 }
 
 const char g_HexChars[] = "0123456789abcdef";

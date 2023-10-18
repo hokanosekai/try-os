@@ -1,14 +1,14 @@
 BUILD_DIR ?= bin
 ASM = nasm
 
-.PHONY: all bootloader clean
+.PHONY: all stage1 clean
 
-all: bootloader
+all: stage1
 
-bootloader: $(BUILD_DIR)/bootloader.bin
+stage1: $(BUILD_DIR)/stage1.bin
 
-$(BUILD_DIR)/bootloader.bin:
-	$(ASM) -f bin -o $(BUILD_DIR)/bootloader.bin boot.asm
+$(BUILD_DIR)/stage1.bin:
+	$(ASM) -f bin -o $(BUILD_DIR)/stage1.bin boot.asm
 
 clean:
-	rm -f $(BUILD_DIR)/bootloader.bin
+	rm -f $(BUILD_DIR)/stage1.bin

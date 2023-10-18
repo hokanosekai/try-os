@@ -49,10 +49,10 @@ typedef enum {
   FAT_ATTR_LFN        = FAT_ATTR_READ_ONLY | FAT_ATTR_HIDDEN | FAT_ATTR_SYSTEM | FAT_ATTR_VOLUME_ID,
 } FAT_ATTR;
 
-bool FAT_init(partition_t *part);
-fat_file_t *FAT_open(partition_t *part, const char *path);
-uint32_t FAT_read(partition_t *part, fat_file_t *file, uint32_t byteCount, void* dataOut);
-bool FAT_read_entry(partition_t *part, fat_file_t *file, fat_dirent_t *entry);
-void FAT_close(fat_file_t *file);
+bool fat_init(partition_t *part);
+fat_file_t *fat_open(partition_t *part, const char *path);
+uint32_t fat_read(partition_t *part, fat_file_t *file, uint32_t byteCount, void* dataOut);
+bool fat_read_entry(partition_t *part, fat_file_t *file, fat_dirent_t *entry);
+void fat_close(fat_file_t *file);
 
 #endif

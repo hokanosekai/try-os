@@ -59,7 +59,17 @@
     "memory": "cpp",
     "random": "cpp",
     "idt.h": "c",
-    "mbr.h": "c"
+    "mbr.h": "c",
+    "xlocmon": "c",
+    "bitset": "c",
+    "queue": "c",
+    "stack": "c",
+    "type_traits": "c",
+    "socket": "c",
+    "utility": "c",
+    "dynamic_bitset": "c",
+    "elf.h": "c",
+    "locale": "c"
   },
   "cSpell.words": [
     "MEMDEFS",

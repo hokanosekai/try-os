@@ -15,9 +15,9 @@ OBJECTS_C = $(patsubst %.c, $(BUILD_DIR)/kernel/c/%.o, $(SOURCES_C))
 
 all: kernel
 
-kernel: $(BUILD_DIR)/kernel.bin
+kernel: $(BUILD_DIR)/kernel.elf
 
-$(BUILD_DIR)/kernel.bin: $(OBJECTS_ASM) $(OBJECTS_C)
+$(BUILD_DIR)/kernel.elf: $(OBJECTS_ASM) $(OBJECTS_C)
 	@$(TARGET_LD) $(TARGET_LINKFLAGS) -Wl,-Map=$(BUILD_DIR)/kernel.map -o $@ $^ $(TARGET_LIBS)
 	@echo "Kernel: Done"
 
@@ -32,4 +32,4 @@ $(BUILD_DIR)/kernel/asm/%.o: %.asm
 	@echo $< ": Done"
 
 clean:
-	rm -f $(BUILD_DIR)/kernel.bin
+	rm -f $(BUILD_DIR)/kernel.elf

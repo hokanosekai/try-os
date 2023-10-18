@@ -1,7 +1,7 @@
 #include <fs/mbr.h>
 #include <sys/memory.h>
 
-void MBR_detect_part(partition_t* part, disk_t* disk, void* partition) {
+void mbr_detect_part(partition_t* part, disk_t* disk, void* partition) {
   part->disk = disk;
   if (disk->id < 0x80) {
     part->partition_offset = 0;
@@ -13,6 +13,6 @@ void MBR_detect_part(partition_t* part, disk_t* disk, void* partition) {
   }
 }
 
-bool MBR_read_part(partition_t* part, uint32_t lba, uint8_t sectors, void* dataOut) {
+bool mbr_read_part(partition_t* part, uint32_t lba, uint8_t sectors, void* dataOut) {
   return disk_read(part->disk, part->partition_offset + lba, sectors, dataOut);
 }

@@ -20,7 +20,7 @@ typedef struct {
   uint32_t partition_size;
 } partition_t;
 
-void MBR_detect_part(partition_t* part, disk_t* disk, void* partition);
-bool MBR_read_part(partition_t* part, uint32_t lba, uint8_t sectors, void* dataOut);
+void mbr_detect_part(partition_t* part, disk_t* disk, void* partition);
+bool mbr_read_part(partition_t* part, uint32_t lba, uint8_t sectors, void* dataOut);
 
 #endif

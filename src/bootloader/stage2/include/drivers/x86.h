@@ -39,3 +39,5 @@ typedef enum {
 } E820_Memory_Block_Type;
 
 int ASMCALL x86_E820_GetNextMemoryBlock(E820_memory_block_t* blockOut, uint32_t* continuationId);
+
+#endif
